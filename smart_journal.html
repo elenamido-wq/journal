@@ -55,14 +55,54 @@
             font-weight: 600;
         }
 
-        /* Контейнер таблицы с адаптивной прокруткой */
+        .controls-card {
+            background: var(--card-bg);
+            padding: 12px;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .control-group label {
+            font-size: 11px;
+            color: var(--hint-color);
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        .control-select, .control-input {
+            padding: 10px 12px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-color);
+            color: var(--text-color);
+            font-size: 14px;
+            outline: none;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .controls-row {
+            display: flex;
+            gap: 10px;
+        }
+
         .table-wrapper {
             background: var(--card-bg);
             border-radius: 12px;
             overflow-x: auto;
             box-shadow: 0 2px 8px rgba(0,0,0,0.04);
             -webkit-overflow-scrolling: touch;
-            max-height: 70vh;
+            max-height: 55vh;
         }
 
         table {
@@ -94,7 +134,6 @@
             white-space: nowrap;
         }
 
-        /* Кнопки отметки посещаемости */
         .status-btn {
             padding: 8px 14px;
             border-radius: 8px;
@@ -124,12 +163,10 @@
             margin-top: 16px;
             display: flex;
             gap: 10px;
-            flex-wrap: wrap;
         }
 
         .main-btn {
             flex: 1;
-            min-width: 140px;
             padding: 14px;
             border-radius: 10px;
             border: none;
@@ -142,26 +179,14 @@
             box-shadow: 0 2px 6px rgba(0,0,0,0.1);
         }
 
-        /* Оптимизация под ПК (большие экраны) */
         @media (min-width: 768px) {
             body {
-                max-width: 900px;
+                max-width: 800px;
                 margin: 0 auto;
                 padding: 24px;
             }
-
-            .header h1 {
-                font-size: 22px;
-            }
-
-            th, td {
-                padding: 14px 16px;
-                font-size: 15px;
-            }
-
-            .status-btn {
-                padding: 10px 18px;
-                font-size: 14px;
+            .controls-row {
+                flex-direction: row;
             }
         }
     </style>
@@ -176,6 +201,33 @@
         <div id="statusBadge" class="status-badge">Загрузка...</div>
     </div>
 
+    <div class="controls-card">
+        <div class="control-group">
+            <label>Дисциплина / Предмет</label>
+            <select class="control-select" id="subjectSelect">
+                <option>Искусственный Интеллект в Образовании</option>
+                <option>Цифровые Технологии и Аналитика</option>
+                <option>Методология Исследований</option>
+            </select>
+        </div>
+
+        <div class="controls-row">
+            <div class="control-group" style="flex: 1;">
+                <label>Группа</label>
+                <select class="control-select" id="groupSelect">
+                    <option>ИТ-101 (Магистратура)</option>
+                    <option>ПИ-202 (Бакалавриат)</option>
+                    <option>ИИ-301</option>
+                </select>
+            </div>
+
+            <div class="control-group" style="flex: 1;">
+                <label>Дата занятия</label>
+                <input type="date" class="control-input" id="datePicker">
+            </div>
+        </div>
+    </div>
+
     <div class="table-wrapper">
         <table>
             <thead>
@@ -186,20 +238,20 @@
                 </tr>
             </thead>
             <tbody id="studentList">
-                <!-- Динамический список студентов -->
             </tbody>
         </table>
     </div>
 
     <div class="actions">
-        <button class="main-btn" onclick="exportToExcel()">📊 Скачать Excel-ведомость</button>
+        <button class="main-btn" onclick="saveAndExport()">📊 Сохранить и Скачать Excel</button>
     </div>
 
     <script>
         const tg = window.Telegram.WebApp;
-        tg.expand(); // Растягиваем окно приложения на весь экран
+        tg.expand();
 
-        // Считываем параметры из URL (status и user_id)
+        document.getElementById('datePicker').valueAsDate = new Date();
+
         const urlParams = new URLSearchParams(window.location.search);
         const userStatus = urlParams.get('status') || 'TRIAL';
         
@@ -212,7 +264,6 @@
             badge.innerText = '🎁 Trial период';
         }
 
-        // Демо-список студентов (затем будет подгружаться из базы)
         const students = [
             "Абдуллаева Амина", "Асанбеков Бакыт", "Болотбекова Айпери",
             "Иванов Дмитрий", "Исмаилов Нурбек", "Кузнецова София",
@@ -234,7 +285,7 @@
         });
 
         function toggleStatus(btn) {
-            if (window.navigator.vibrate) window.navigator.vibrate(20); // Легкий виброотклик
+            if (window.navigator.vibrate) window.navigator.vibrate(20);
             if (btn.classList.contains('present')) {
                 btn.classList.remove('present');
                 btn.classList.add('absent');
@@ -246,8 +297,10 @@
             }
         }
 
-        function exportToExcel() {
-            tg.showAlert('📄 Ведомость успешно сформирована и готова к сохранению!');
+        function saveAndExport() {
+            const group = document.getElementById('groupSelect').value;
+            const date = document.getElementById('datePicker').value;
+            tg.showAlert(`✅ Перекличка для группы ${group} за ${date} сохранена!`);
         }
     </script>
 </body>
