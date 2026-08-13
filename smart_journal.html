@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Умная Перекличка • NeuroLifeAI</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <style>
         :root {
             --bg-color: var(--tg-theme-bg-color, #f8f9fa);
@@ -139,7 +140,7 @@
         <button class="tab-btn" onclick="switchTab('settingsTab', this)">⚙️ Управление данными</button>
     </div>
 
-    <!-- Вкладка Переклички -->
+    <!-- Вкладка Журнала -->
     <div id="journalTab" class="tab-content active">
         <div class="card">
             <div class="control-group">
@@ -172,8 +173,8 @@
             </table>
         </div>
 
-        <div style="margin-top: 14px;">
-            <button class="main-btn" onclick="exportToExcel()">📊 Получить Excel в Чат Telegram</button>
+        <div style="margin-top: 14px; display: flex; flex-direction: column; gap: 8px;">
+            <button id="exportBtn" class="main-btn" onclick="exportData()">📊 Сформировать и Скачать Excel</button>
         </div>
     </div>
 
@@ -212,8 +213,11 @@
     </div>
 
     <script>
-        const tg = window.Telegram.WebApp;
-        tg.expand();
+        const tg = window.Telegram ? window.Telegram.WebApp : null;
+        if (tg) {
+            tg.ready();
+            tg.expand();
+        }
 
         document.getElementById('datePicker').valueAsDate = new Date();
 
@@ -288,26 +292,36 @@
                 db.subjects.push(val);
                 saveData();
                 document.getElementById('newSubjectInput').value = '';
-                tg.showAlert(`✅ Дисциплина "${val}" добавлена!`);
+                if (tg && tg.showAlert) tg.showAlert(`✅ Дисциплина "${val}" добавлена!`);
+                else alert(`✅ Дисциплина "${val}" добавлена!`);
             }
         }
 
         function addSingleStudent() {
             const group = document.getElementById('targetGroupInput').value.trim();
             const student = document.getElementById('singleStudentInput').value.trim();
-            if (!group || !student) return tg.showAlert('⚠️ Укажите группу и ФИО');
+            if (!group || !student) {
+                const msg = '⚠️ Укажите группу и ФИО';
+                if (tg && tg.showAlert) tg.showAlert(msg); else alert(msg);
+                return;
+            }
 
             if (!db.groups[group]) db.groups[group] = [];
             db.groups[group].push(student);
             saveData();
             document.getElementById('singleStudentInput').value = '';
-            tg.showAlert(`✅ ${student} добавлен в группу ${group}`);
+            const msg = `✅ ${student} добавлен в группу ${group}`;
+            if (tg && tg.showAlert) tg.showAlert(msg); else alert(msg);
         }
 
         function addBulkStudents() {
             const group = document.getElementById('targetGroupInput').value.trim();
             const rawText = document.getElementById('bulkStudentInput').value.trim();
-            if (!group || !rawText) return tg.showAlert('⚠️ Укажите группу и вставьте список');
+            if (!group || !rawText) {
+                const msg = '⚠️ Укажите группу и вставьте список';
+                if (tg && tg.showAlert) tg.showAlert(msg); else alert(msg);
+                return;
+            }
 
             const newStudents = rawText.split('\n').map(s => s.trim()).filter(s => s.length > 0);
             if (!db.groups[group]) db.groups[group] = [];
@@ -315,11 +329,12 @@
             db.groups[group] = [...db.groups[group], ...newStudents];
             saveData();
             document.getElementById('bulkStudentInput').value = '';
-            tg.showAlert(`✅ Добавлено ${newStudents.length} студентов в группу ${group}`);
+            const msg = `✅ Добавлено ${newStudents.length} студентов в группу ${group}`;
+            if (tg && tg.showAlert) tg.showAlert(msg); else alert(msg);
         }
 
-        // Отправка данных боту в Telegram для формирования Excel
-        function exportToExcel() {
+        // Универсальная функция генерации Excel / отправки
+        function exportData() {
             const subject = document.getElementById('subjectSelect').value;
             const group = document.getElementById('groupSelect').value;
             const date = document.getElementById('datePicker').value;
@@ -346,7 +361,46 @@
                 students: attendanceData
             };
 
-            tg.sendData(JSON.stringify(dataToSend));
+            // 1. Пробуем отправить данные Telegram боту
+            if (tg && tg.sendData) {
+                try {
+                    tg.sendData(JSON.stringify(dataToSend));
+                    return;
+                } catch(e) {
+                    console.log("sendData failed, switching to local download", e);
+                }
+            }
+
+            // 2. Резервный способ: Скачивание настоящей Excel-ведомости локально
+            generateExcelLocally(subject, group, date, attendanceData);
+        }
+
+        function generateExcelLocally(subject, group, date, students) {
+            const rows = [
+                ["ВЕДОМОСТЬ ПОСЕЩАЕМОСТИ"],
+                ["Дисциплина:", subject],
+                ["Группа:", group],
+                ["Дата занятия:", date],
+                [],
+                ["№", "ФИО Студента", "Статус"]
+            ];
+
+            let present = 0, absent = 0;
+            students.forEach(s => {
+                rows.push([s.num, s.name, s.status]);
+                if (s.status === 'Был') present++; else absent++;
+            });
+
+            rows.push([]);
+            rows.push(["Итого присутствовало:", present]);
+            rows.push(["Итого отсутствовало:", absent]);
+
+            const worksheet = XLSX.utils.aoa_to_sheet(rows);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Ведомость");
+
+            const fileName = `Ведомость_${group}_${date}.xlsx`;
+            XLSX.writeFile(workbook, fileName);
         }
 
         initDropdowns();
