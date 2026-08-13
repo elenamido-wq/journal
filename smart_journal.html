@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Умная Перекличка • NeuroLifeAI</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <!-- Подключаем библиотеку для генерации настоящих Excel-файлов -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <style>
         :root {
             --bg-color: var(--tg-theme-bg-color, #f8f9fa);
@@ -29,7 +31,6 @@
             user-select: none;
         }
 
-        /* Переключатель вкладок */
         .nav-tabs {
             display: flex;
             background: var(--card-bg);
@@ -71,24 +72,10 @@
             gap: 10px;
         }
 
-        .card h2 {
-            font-size: 15px;
-            margin: 0 0 4px 0;
-            font-weight: 700;
-        }
+        .card h2 { font-size: 15px; margin: 0 0 4px 0; font-weight: 700; }
 
-        .control-group {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-
-        .control-group label {
-            font-size: 11px;
-            color: var(--hint-color);
-            text-transform: uppercase;
-            font-weight: 600;
-        }
+        .control-group { display: flex; flex-direction: column; gap: 4px; }
+        .control-group label { font-size: 11px; color: var(--hint-color); text-transform: uppercase; font-weight: 600; }
 
         .control-select, .control-input, textarea {
             padding: 10px 12px;
@@ -144,21 +131,16 @@
             text-align: center;
         }
 
-        .sec-btn {
-            background: #e9ecef;
-            color: #495057;
-        }
+        .sec-btn { background: #e9ecef; color: #495057; }
     </style>
 </head>
 <body>
 
-    <!-- Навигация по вкладкам -->
     <div class="nav-tabs">
         <button class="tab-btn active" onclick="switchTab('journalTab', this)">📋 Журнал</button>
         <button class="tab-btn" onclick="switchTab('settingsTab', this)">⚙️ Управление данными</button>
     </div>
 
-    <!-- Вкладка 1: Проведение переклички -->
     <div id="journalTab" class="tab-content active">
         <div class="card">
             <div class="control-group">
@@ -192,14 +174,11 @@
         </div>
 
         <div style="margin-top: 14px;">
-            <button class="main-btn" onclick="saveAndExport()">📊 Сохранить и Скачать Excel</button>
+            <button class="main-btn" onclick="exportToExcel()">📊 Скачать Excel-ведомость</button>
         </div>
     </div>
 
-    <!-- Вкладка 2: Настройки (Добавление предметов и студентов) -->
     <div id="settingsTab" class="tab-content">
-        
-        <!-- Добавление Дисциплины -->
         <div class="card">
             <h2>➕ Добавить дисциплину</h2>
             <div class="controls-row">
@@ -208,10 +187,8 @@
             </div>
         </div>
 
-        <!-- Добавление Студентов в Группу -->
         <div class="card">
             <h2>👥 Управление студентами и группами</h2>
-            
             <div class="control-group">
                 <label>Выберите или введите новую группу</label>
                 <input type="text" id="targetGroupInput" class="control-input" placeholder="Например: ИТ-101">
@@ -226,7 +203,7 @@
             </div>
 
             <div class="control-group">
-                <label>Групповой ввод (из файлов/Excel списком)</label>
+                <label>Групповой ввод (списком)</label>
                 <textarea id="bulkStudentInput" rows="4" placeholder="Вставьте список фамилий (каждый студент с новой строки)..."></textarea>
             </div>
 
@@ -240,7 +217,6 @@
 
         document.getElementById('datePicker').valueAsDate = new Date();
 
-        // Локальная база данных во внешнем хранилище
         let db = JSON.parse(localStorage.getItem('neuroJournalDB')) || {
             subjects: ["Искусственный Интеллект в Образовании", "Цифровые Технологии"],
             groups: {
@@ -285,7 +261,7 @@
             tbody.innerHTML = students.map((name, idx) => `
                 <tr>
                     <td style="color: var(--hint-color); font-size: 12px;">${idx + 1}</td>
-                    <td style="font-weight: 500;">${name}</td>
+                    <td class="student-name" style="font-weight: 500;">${name}</td>
                     <td style="text-align: center;">
                         <button class="status-btn present" onclick="toggleStatus(this)">Был</button>
                     </td>
@@ -342,10 +318,53 @@
             tg.showAlert(`✅ Добавлено ${newStudents.length} студентов в группу ${group}`);
         }
 
-        function saveAndExport() {
+        // Функция генерации и скачивания настоящего Excel-файла
+        function exportToExcel() {
+            const subject = document.getElementById('subjectSelect').value;
             const group = document.getElementById('groupSelect').value;
             const date = document.getElementById('datePicker').value;
-            tg.showAlert(`✅ Журнал группы ${group} за ${date} успешно сохранен!`);
+
+            const rows = [];
+            
+            // Шапка файла
+            rows.push(["ВЕДОМОСТЬ ПОСЕЩАЕМОСТИ"]);
+            rows.push(["Дисциплина:", subject]);
+            rows.push(["Группа:", group]);
+            rows.push(["Дата занятия:", date]);
+            rows.push([]); // пустая строка
+            rows.push(["№", "ФИО Студента", "Статус"]);
+
+            // Данные студентов
+            const trs = document.querySelectorAll('#studentList tr');
+            let presentCount = 0;
+            let absentCount = 0;
+
+            trs.forEach((tr, idx) => {
+                const nameEl = tr.querySelector('.student-name');
+                const btnEl = tr.querySelector('.status-btn');
+                if (nameEl && btnEl) {
+                    const name = nameEl.innerText;
+                    const status = btnEl.innerText;
+                    if (status === 'Был') presentCount++; else absentCount++;
+                    rows.push([idx + 1, name, status]);
+                }
+            });
+
+            rows.push([]);
+            rows.push(["Итого присутствовало:", presentCount]);
+            rows.push(["Итого отсутствовало (Н/Я):", absentCount]);
+
+            // Генерация книги Excel
+            const worksheet = XLSX.utils.aoa_to_sheet(rows);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Ведомость");
+
+            // Формируем название файла
+            const fileName = `Ведомость_${group}_${date}.xlsx`;
+
+            // Скачивание файла
+            XLSX.writeFile(workbook, fileName);
+            tg.showAlert(`📥 Файл "${fileName}" сгенерирован и скачан!`);
         }
 
         initDropdowns();
