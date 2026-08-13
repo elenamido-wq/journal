@@ -24,46 +24,57 @@
             color: var(--text-color);
             margin: 0;
             padding: 12px;
-            padding-bottom: calc(12px + env(safe-area-inset-bottom));
+            padding-bottom: calc(20px + env(safe-area-inset-bottom));
             -webkit-user-select: none;
             user-select: none;
         }
 
-        .header {
+        /* Переключатель вкладок */
+        .nav-tabs {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 12px;
             background: var(--card-bg);
-            padding: 12px 16px;
             border-radius: 12px;
+            padding: 4px;
+            margin-bottom: 12px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.04);
         }
 
-        .header h1 {
-            font-size: 18px;
-            margin: 0;
-            font-weight: 700;
-        }
-
-        .status-badge {
-            font-size: 11px;
-            padding: 4px 8px;
-            border-radius: 20px;
-            background: #e7f5ff;
-            color: #0c85d0;
+        .tab-btn {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            background: transparent;
+            color: var(--hint-color);
             font-weight: 600;
+            font-size: 13px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
         }
 
-        .controls-card {
+        .tab-btn.active {
+            background: var(--button-color);
+            color: var(--button-text);
+        }
+
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        .card {
             background: var(--card-bg);
-            padding: 12px;
+            padding: 14px;
             border-radius: 12px;
             margin-bottom: 12px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.04);
             display: flex;
             flex-direction: column;
             gap: 10px;
+        }
+
+        .card h2 {
+            font-size: 15px;
+            margin: 0 0 4px 0;
+            font-weight: 700;
         }
 
         .control-group {
@@ -79,7 +90,7 @@
             font-weight: 600;
         }
 
-        .control-select, .control-input {
+        .control-select, .control-input, textarea {
             padding: 10px 12px;
             border-radius: 8px;
             border: 1px solid var(--border-color);
@@ -89,50 +100,22 @@
             outline: none;
             width: 100%;
             box-sizing: border-box;
+            font-family: inherit;
         }
 
-        .controls-row {
-            display: flex;
-            gap: 10px;
-        }
+        .controls-row { display: flex; gap: 10px; }
 
         .table-wrapper {
             background: var(--card-bg);
             border-radius: 12px;
             overflow-x: auto;
             box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-            -webkit-overflow-scrolling: touch;
-            max-height: 55vh;
+            max-height: 50vh;
         }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            min-width: 320px;
-            font-size: 14px;
-        }
-
-        th, td {
-            padding: 12px 10px;
-            text-align: left;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        th {
-            background: var(--card-bg);
-            position: sticky;
-            top: 0;
-            z-index: 10;
-            font-size: 12px;
-            color: var(--hint-color);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .student-name {
-            font-weight: 500;
-            white-space: nowrap;
-        }
+        table { width: 100%; border-collapse: collapse; font-size: 14px; }
+        th, td { padding: 12px 10px; text-align: left; border-bottom: 1px solid var(--border-color); }
+        th { background: var(--card-bg); position: sticky; top: 0; font-size: 12px; color: var(--hint-color); }
 
         .status-btn {
             padding: 8px 14px;
@@ -141,109 +124,114 @@
             font-weight: 600;
             font-size: 13px;
             cursor: pointer;
-            transition: all 0.2s ease;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
             width: 100%;
             max-width: 90px;
         }
 
-        .status-btn.present {
-            background-color: #e6f4ea;
-            color: var(--present-color);
-        }
-
-        .status-btn.absent {
-            background-color: #fce8e6;
-            color: var(--absent-color);
-        }
-
-        .actions {
-            margin-top: 16px;
-            display: flex;
-            gap: 10px;
-        }
+        .status-btn.present { background-color: #e6f4ea; color: var(--present-color); }
+        .status-btn.absent { background-color: #fce8e6; color: var(--absent-color); }
 
         .main-btn {
-            flex: 1;
-            padding: 14px;
+            width: 100%;
+            padding: 12px;
             border-radius: 10px;
             border: none;
             background-color: var(--button-color);
             color: var(--button-text);
             font-weight: 600;
-            font-size: 15px;
+            font-size: 14px;
             cursor: pointer;
             text-align: center;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
         }
 
-        @media (min-width: 768px) {
-            body {
-                max-width: 800px;
-                margin: 0 auto;
-                padding: 24px;
-            }
-            .controls-row {
-                flex-direction: row;
-            }
+        .sec-btn {
+            background: #e9ecef;
+            color: #495057;
         }
     </style>
 </head>
 <body>
 
-    <div class="header">
-        <div>
-            <h1>📚 Быстрая Перекличка</h1>
-            <div style="font-size: 12px; color: var(--hint-color); margin-top: 2px;">Все по умолчанию «Присутствуют»</div>
-        </div>
-        <div id="statusBadge" class="status-badge">Загрузка...</div>
+    <!-- Навигация по вкладкам -->
+    <div class="nav-tabs">
+        <button class="tab-btn active" onclick="switchTab('journalTab', this)">📋 Журнал</button>
+        <button class="tab-btn" onclick="switchTab('settingsTab', this)">⚙️ Управление данными</button>
     </div>
 
-    <div class="controls-card">
-        <div class="control-group">
-            <label>Дисциплина / Предмет</label>
-            <select class="control-select" id="subjectSelect">
-                <option>Искусственный Интеллект в Образовании</option>
-                <option>Цифровые Технологии и Аналитика</option>
-                <option>Методология Исследований</option>
-            </select>
-        </div>
-
-        <div class="controls-row">
-            <div class="control-group" style="flex: 1;">
-                <label>Группа</label>
-                <select class="control-select" id="groupSelect">
-                    <option>ИТ-101 (Магистратура)</option>
-                    <option>ПИ-202 (Бакалавриат)</option>
-                    <option>ИИ-301</option>
-                </select>
+    <!-- Вкладка 1: Проведение переклички -->
+    <div id="journalTab" class="tab-content active">
+        <div class="card">
+            <div class="control-group">
+                <label>Дисциплина / Предмет</label>
+                <select class="control-select" id="subjectSelect"></select>
             </div>
 
-            <div class="control-group" style="flex: 1;">
-                <label>Дата занятия</label>
-                <input type="date" class="control-input" id="datePicker">
+            <div class="controls-row">
+                <div class="control-group" style="flex: 1;">
+                    <label>Группа</label>
+                    <select class="control-select" id="groupSelect" onchange="renderStudents()"></select>
+                </div>
+                <div class="control-group" style="flex: 1;">
+                    <label>Дата</label>
+                    <input type="date" class="control-input" id="datePicker">
+                </div>
             </div>
+        </div>
+
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 5%;">№</th>
+                        <th>ФИО Студента</th>
+                        <th style="text-align: center; width: 30%;">Отметка</th>
+                    </tr>
+                </thead>
+                <tbody id="studentList"></tbody>
+            </table>
+        </div>
+
+        <div style="margin-top: 14px;">
+            <button class="main-btn" onclick="saveAndExport()">📊 Сохранить и Скачать Excel</button>
         </div>
     </div>
 
-    <div class="table-wrapper">
-        <table>
-            <thead>
-                <tr>
-                    <th style="width: 5%;">№</th>
-                    <th>Студент</th>
-                    <th style="text-align: center; width: 30%;">Статус</th>
-                </tr>
-            </thead>
-            <tbody id="studentList">
-            </tbody>
-        </table>
-    </div>
+    <!-- Вкладка 2: Настройки (Добавление предметов и студентов) -->
+    <div id="settingsTab" class="tab-content">
+        
+        <!-- Добавление Дисциплины -->
+        <div class="card">
+            <h2>➕ Добавить дисциплину</h2>
+            <div class="controls-row">
+                <input type="text" id="newSubjectInput" class="control-input" placeholder="Например: Нейросети в медиа">
+                <button class="main-btn" style="width: auto; white-space: nowrap;" onclick="addSubject()">Добавить</button>
+            </div>
+        </div>
 
-    <div class="actions">
-        <button class="main-btn" onclick="saveAndExport()">📊 Сохранить и Скачать Excel</button>
+        <!-- Добавление Студентов в Группу -->
+        <div class="card">
+            <h2>👥 Управление студентами и группами</h2>
+            
+            <div class="control-group">
+                <label>Выберите или введите новую группу</label>
+                <input type="text" id="targetGroupInput" class="control-input" placeholder="Например: ИТ-101">
+            </div>
+
+            <div class="control-group">
+                <label>Единичное добавление ФИО</label>
+                <div class="controls-row">
+                    <input type="text" id="singleStudentInput" class="control-input" placeholder="Иванов Алексей">
+                    <button class="main-btn sec-btn" style="width: auto; white-space: nowrap;" onclick="addSingleStudent()">+1</button>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label>Групповой ввод (из файлов/Excel списком)</label>
+                <textarea id="bulkStudentInput" rows="4" placeholder="Вставьте список фамилий (каждый студент с новой строки)..."></textarea>
+            </div>
+
+            <button class="main-btn" onclick="addBulkStudents()">💾 Сохранить список студентов</button>
+        </div>
     </div>
 
     <script>
@@ -252,40 +240,60 @@
 
         document.getElementById('datePicker').valueAsDate = new Date();
 
-        const urlParams = new URLSearchParams(window.location.search);
-        const userStatus = urlParams.get('status') || 'TRIAL';
-        
-        const badge = document.getElementById('statusBadge');
-        if (userStatus === 'PRO') {
-            badge.innerText = '⭐ PRO-доступ';
-            badge.style.background = '#e6f4ea';
-            badge.style.color = '#198754';
-        } else {
-            badge.innerText = '🎁 Trial период';
+        // Локальная база данных во внешнем хранилище
+        let db = JSON.parse(localStorage.getItem('neuroJournalDB')) || {
+            subjects: ["Искусственный Интеллект в Образовании", "Цифровые Технологии"],
+            groups: {
+                "ИТ-101": ["Абдуллаева Амина", "Асанбеков Бакыт", "Болотбекова Айпери"],
+                "ПИ-202": ["Иванов Дмитрий", "Исмаилов Нурбек", "Кузнецова София"]
+            }
+        };
+
+        function saveData() {
+            localStorage.setItem('neuroJournalDB', JSON.stringify(db));
+            initDropdowns();
         }
 
-        const students = [
-            "Абдуллаева Амина", "Асанбеков Бакыт", "Болотбекова Айпери",
-            "Иванов Дмитрий", "Исмаилов Нурбек", "Кузнецова София",
-            "Мамедов Руслан", "Орозобекова Динара", "Садыков Эркин"
-        ];
+        function switchTab(tabId, btn) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            btn.classList.add('active');
+        }
 
-        const tbody = document.getElementById('studentList');
+        function initDropdowns() {
+            const subjSelect = document.getElementById('subjectSelect');
+            subjSelect.innerHTML = db.subjects.map(s => `<option>${s}</option>`).join('');
 
-        students.forEach((name, idx) => {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td style="color: var(--hint-color); font-size: 12px;">${idx + 1}</td>
-                <td class="student-name">${name}</td>
-                <td style="text-align: center;">
-                    <button class="status-btn present" onclick="toggleStatus(this)">Был</button>
-                </td>
-            `;
-            tbody.appendChild(tr);
-        });
+            const groupSelect = document.getElementById('groupSelect');
+            const groupNames = Object.keys(db.groups);
+            groupSelect.innerHTML = groupNames.map(g => `<option>${g}</option>`).join('');
+
+            renderStudents();
+        }
+
+        function renderStudents() {
+            const group = document.getElementById('groupSelect').value;
+            const students = db.groups[group] || [];
+            const tbody = document.getElementById('studentList');
+
+            if (students.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="3" style="text-align:center; color: var(--hint-color);">В этой группе пока нет студентов</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = students.map((name, idx) => `
+                <tr>
+                    <td style="color: var(--hint-color); font-size: 12px;">${idx + 1}</td>
+                    <td style="font-weight: 500;">${name}</td>
+                    <td style="text-align: center;">
+                        <button class="status-btn present" onclick="toggleStatus(this)">Был</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
 
         function toggleStatus(btn) {
-            if (window.navigator.vibrate) window.navigator.vibrate(20);
             if (btn.classList.contains('present')) {
                 btn.classList.remove('present');
                 btn.classList.add('absent');
@@ -297,11 +305,50 @@
             }
         }
 
+        function addSubject() {
+            const val = document.getElementById('newSubjectInput').value.trim();
+            if (!val) return;
+            if (!db.subjects.includes(val)) {
+                db.subjects.push(val);
+                saveData();
+                document.getElementById('newSubjectInput').value = '';
+                tg.showAlert(`✅ Дисциплина "${val}" добавлена!`);
+            }
+        }
+
+        function addSingleStudent() {
+            const group = document.getElementById('targetGroupInput').value.trim();
+            const student = document.getElementById('singleStudentInput').value.trim();
+            if (!group || !student) return tg.showAlert('⚠️ Укажите группу и ФИО');
+
+            if (!db.groups[group]) db.groups[group] = [];
+            db.groups[group].push(student);
+            saveData();
+            document.getElementById('singleStudentInput').value = '';
+            tg.showAlert(`✅ ${student} добавлен в группу ${group}`);
+        }
+
+        function addBulkStudents() {
+            const group = document.getElementById('targetGroupInput').value.trim();
+            const rawText = document.getElementById('bulkStudentInput').value.trim();
+            if (!group || !rawText) return tg.showAlert('⚠️ Укажите группу и вставьте список');
+
+            const newStudents = rawText.split('\n').map(s => s.trim()).filter(s => s.length > 0);
+            if (!db.groups[group]) db.groups[group] = [];
+
+            db.groups[group] = [...db.groups[group], ...newStudents];
+            saveData();
+            document.getElementById('bulkStudentInput').value = '';
+            tg.showAlert(`✅ Добавлено ${newStudents.length} студентов в группу ${group}`);
+        }
+
         function saveAndExport() {
             const group = document.getElementById('groupSelect').value;
             const date = document.getElementById('datePicker').value;
-            tg.showAlert(`✅ Перекличка для группы ${group} за ${date} сохранена!`);
+            tg.showAlert(`✅ Журнал группы ${group} за ${date} успешно сохранен!`);
         }
+
+        initDropdowns();
     </script>
 </body>
 </html>
