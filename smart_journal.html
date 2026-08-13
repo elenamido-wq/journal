@@ -5,8 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Умная Перекличка • NeuroLifeAI</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <!-- Подключаем библиотеку для генерации настоящих Excel-файлов -->
-    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <style>
         :root {
             --bg-color: var(--tg-theme-bg-color, #f8f9fa);
@@ -141,6 +139,7 @@
         <button class="tab-btn" onclick="switchTab('settingsTab', this)">⚙️ Управление данными</button>
     </div>
 
+    <!-- Вкладка Переклички -->
     <div id="journalTab" class="tab-content active">
         <div class="card">
             <div class="control-group">
@@ -174,10 +173,11 @@
         </div>
 
         <div style="margin-top: 14px;">
-            <button class="main-btn" onclick="exportToExcel()">📊 Скачать Excel-ведомость</button>
+            <button class="main-btn" onclick="exportToExcel()">📊 Получить Excel в Чат Telegram</button>
         </div>
     </div>
 
+    <!-- Вкладка Настроек -->
     <div id="settingsTab" class="tab-content">
         <div class="card">
             <h2>➕ Добавить дисциплину</h2>
@@ -203,7 +203,7 @@
             </div>
 
             <div class="control-group">
-                <label>Групповой ввод (списком)</label>
+                <label>Групповой ввод (списком из Excel/файла)</label>
                 <textarea id="bulkStudentInput" rows="4" placeholder="Вставьте список фамилий (каждый студент с новой строки)..."></textarea>
             </div>
 
@@ -318,53 +318,35 @@
             tg.showAlert(`✅ Добавлено ${newStudents.length} студентов в группу ${group}`);
         }
 
-        // Функция генерации и скачивания настоящего Excel-файла
+        // Отправка данных боту в Telegram для формирования Excel
         function exportToExcel() {
             const subject = document.getElementById('subjectSelect').value;
             const group = document.getElementById('groupSelect').value;
             const date = document.getElementById('datePicker').value;
 
-            const rows = [];
-            
-            // Шапка файла
-            rows.push(["ВЕДОМОСТЬ ПОСЕЩАЕМОСТИ"]);
-            rows.push(["Дисциплина:", subject]);
-            rows.push(["Группа:", group]);
-            rows.push(["Дата занятия:", date]);
-            rows.push([]); // пустая строка
-            rows.push(["№", "ФИО Студента", "Статус"]);
-
-            // Данные студентов
             const trs = document.querySelectorAll('#studentList tr');
-            let presentCount = 0;
-            let absentCount = 0;
+            const attendanceData = [];
 
             trs.forEach((tr, idx) => {
                 const nameEl = tr.querySelector('.student-name');
                 const btnEl = tr.querySelector('.status-btn');
                 if (nameEl && btnEl) {
-                    const name = nameEl.innerText;
-                    const status = btnEl.innerText;
-                    if (status === 'Был') presentCount++; else absentCount++;
-                    rows.push([idx + 1, name, status]);
+                    attendanceData.push({
+                        num: idx + 1,
+                        name: nameEl.innerText,
+                        status: btnEl.innerText
+                    });
                 }
             });
 
-            rows.push([]);
-            rows.push(["Итого присутствовало:", presentCount]);
-            rows.push(["Итого отсутствовало (Н/Я):", absentCount]);
+            const dataToSend = {
+                subject: subject,
+                group: group,
+                date: date,
+                students: attendanceData
+            };
 
-            // Генерация книги Excel
-            const worksheet = XLSX.utils.aoa_to_sheet(rows);
-            const workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, "Ведомость");
-
-            // Формируем название файла
-            const fileName = `Ведомость_${group}_${date}.xlsx`;
-
-            // Скачивание файла
-            XLSX.writeFile(workbook, fileName);
-            tg.showAlert(`📥 Файл "${fileName}" сгенерирован и скачан!`);
+            tg.sendData(JSON.stringify(dataToSend));
         }
 
         initDropdowns();
