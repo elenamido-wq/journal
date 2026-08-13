@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Умная Перекличка • NeuroLifeAI</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        :root {
+            --bg-color: var(--tg-theme-bg-color, #f8f9fa);
+            --text-color: var(--tg-theme-text-color, #212529);
+            --card-bg: var(--tg-theme-secondary-bg-color, #ffffff);
+            --hint-color: var(--tg-theme-hint-color, #6c757d);
+            --button-color: var(--tg-theme-button-color, #007bff);
+            --button-text: var(--tg-theme-button-text-color, #ffffff);
+            --border-color: #e9ecef;
+            --absent-color: #dc3545;
+            --present-color: #198754;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 12px;
+            padding-bottom: calc(12px + env(safe-area-inset-bottom));
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            background: var(--card-bg);
+            padding: 12px 16px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+
+        .header h1 {
+            font-size: 18px;
+            margin: 0;
+            font-weight: 700;
+        }
+
+        .status-badge {
+            font-size: 11px;
+            padding: 4px 8px;
+            border-radius: 20px;
+            background: #e7f5ff;
+            color: #0c85d0;
+            font-weight: 600;
+        }
+
+        /* Контейнер таблицы с адаптивной прокруткой */
+        .table-wrapper {
+            background: var(--card-bg);
+            border-radius: 12px;
+            overflow-x: auto;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            -webkit-overflow-scrolling: touch;
+            max-height: 70vh;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 320px;
+            font-size: 14px;
+        }
+
+        th, td {
+            padding: 12px 10px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            background: var(--card-bg);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            font-size: 12px;
+            color: var(--hint-color);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .student-name {
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        /* Кнопки отметки посещаемости */
+        .status-btn {
+            padding: 8px 14px;
+            border-radius: 8px;
+            border: none;
+            font-weight: 600;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            max-width: 90px;
+        }
+
+        .status-btn.present {
+            background-color: #e6f4ea;
+            color: var(--present-color);
+        }
+
+        .status-btn.absent {
+            background-color: #fce8e6;
+            color: var(--absent-color);
+        }
+
+        .actions {
+            margin-top: 16px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .main-btn {
+            flex: 1;
+            min-width: 140px;
+            padding: 14px;
+            border-radius: 10px;
+            border: none;
+            background-color: var(--button-color);
+            color: var(--button-text);
+            font-weight: 600;
+            font-size: 15px;
+            cursor: pointer;
+            text-align: center;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
+
+        /* Оптимизация под ПК (большие экраны) */
+        @media (min-width: 768px) {
+            body {
+                max-width: 900px;
+                margin: 0 auto;
+                padding: 24px;
+            }
+
+            .header h1 {
+                font-size: 22px;
+            }
+
+            th, td {
+                padding: 14px 16px;
+                font-size: 15px;
+            }
+
+            .status-btn {
+                padding: 10px 18px;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div>
+            <h1>📚 Быстрая Перекличка</h1>
+            <div style="font-size: 12px; color: var(--hint-color); margin-top: 2px;">Все по умолчанию «Присутствуют»</div>
+        </div>
+        <div id="statusBadge" class="status-badge">Загрузка...</div>
+    </div>
+
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 5%;">№</th>
+                    <th>Студент</th>
+                    <th style="text-align: center; width: 30%;">Статус</th>
+                </tr>
+            </thead>
+            <tbody id="studentList">
+                <!-- Динамический список студентов -->
+            </tbody>
+        </table>
+    </div>
+
+    <div class="actions">
+        <button class="main-btn" onclick="exportToExcel()">📊 Скачать Excel-ведомость</button>
+    </div>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.expand(); // Растягиваем окно приложения на весь экран
+
+        // Считываем параметры из URL (status и user_id)
+        const urlParams = new URLSearchParams(window.location.search);
+        const userStatus = urlParams.get('status') || 'TRIAL';
+        
+        const badge = document.getElementById('statusBadge');
+        if (userStatus === 'PRO') {
+            badge.innerText = '⭐ PRO-доступ';
+            badge.style.background = '#e6f4ea';
+            badge.style.color = '#198754';
+        } else {
+            badge.innerText = '🎁 Trial период';
+        }
+
+        // Демо-список студентов (затем будет подгружаться из базы)
+        const students = [
+            "Абдуллаева Амина", "Асанбеков Бакыт", "Болотбекова Айпери",
+            "Иванов Дмитрий", "Исмаилов Нурбек", "Кузнецова София",
+            "Мамедов Руслан", "Орозобекова Динара", "Садыков Эркин"
+        ];
+
+        const tbody = document.getElementById('studentList');
+
+        students.forEach((name, idx) => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td style="color: var(--hint-color); font-size: 12px;">${idx + 1}</td>
+                <td class="student-name">${name}</td>
+                <td style="text-align: center;">
+                    <button class="status-btn present" onclick="toggleStatus(this)">Был</button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+
+        function toggleStatus(btn) {
+            if (window.navigator.vibrate) window.navigator.vibrate(20); // Легкий виброотклик
+            if (btn.classList.contains('present')) {
+                btn.classList.remove('present');
+                btn.classList.add('absent');
+                btn.innerText = 'Н/Я';
+            } else {
+                btn.classList.remove('absent');
+                btn.classList.add('present');
+                btn.innerText = 'Был';
+            }
+        }
+
+        function exportToExcel() {
+            tg.showAlert('📄 Ведомость успешно сформирована и готова к сохранению!');
+        }
+    </script>
+</body>
+</html>
