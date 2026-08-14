@@ -2,32 +2,29 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Умная Перекличка • NeuroLifeAI</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <style>
         :root {
-            --bg-color: var(--tg-theme-bg-color, #f8f9fa);
-            --text-color: var(--tg-theme-text-color, #212529);
-            --card-bg: var(--tg-theme-secondary-bg-color, #ffffff);
-            --hint-color: var(--tg-theme-hint-color, #6c757d);
-            --button-color: var(--tg-theme-button-color, #007bff);
-            --button-text: var(--tg-theme-button-text-color, #ffffff);
+            --bg-color: #f8f9fa;
+            --card-bg: #ffffff;
+            --text-color: #212529;
+            --hint-color: #6c757d;
+            --button-color: #007bff;
+            --button-text: #ffffff;
             --border-color: #e9ecef;
-            --absent-color: #dc3545;
             --present-color: #198754;
+            --absent-color: #dc3545;
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             background-color: var(--bg-color);
             color: var(--text-color);
             margin: 0;
             padding: 12px;
-            padding-bottom: calc(20px + env(safe-area-inset-bottom));
-            -webkit-user-select: none;
-            user-select: none;
+            padding-bottom: 30px;
         }
 
         .nav-tabs {
@@ -36,21 +33,19 @@
             border-radius: 12px;
             padding: 4px;
             margin-bottom: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
         }
 
         .tab-btn {
             flex: 1;
-            padding: 8px 4px;
+            padding: 10px 4px;
             border: none;
             background: transparent;
             color: var(--hint-color);
             font-weight: 600;
-            font-size: 12px;
+            font-size: 13px;
             border-radius: 8px;
             cursor: pointer;
-            transition: all 0.2s;
-            text-align: center;
         }
 
         .tab-btn.active {
@@ -66,28 +61,25 @@
             padding: 14px;
             border-radius: 12px;
             margin-bottom: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
             display: flex;
             flex-direction: column;
             gap: 10px;
         }
 
-        .card h2 { font-size: 15px; margin: 0 0 4px 0; font-weight: 700; }
+        .card h2 { font-size: 15px; margin: 0; font-weight: 700; }
 
         .control-group { display: flex; flex-direction: column; gap: 4px; }
         .control-group label { font-size: 11px; color: var(--hint-color); text-transform: uppercase; font-weight: 600; }
 
         .control-select, .control-input, textarea {
-            padding: 10px 12px;
+            padding: 10px;
             border-radius: 8px;
             border: 1px solid var(--border-color);
             background: var(--bg-color);
-            color: var(--text-color);
             font-size: 14px;
-            outline: none;
             width: 100%;
             box-sizing: border-box;
-            font-family: inherit;
         }
 
         .controls-row { display: flex; gap: 10px; }
@@ -96,8 +88,8 @@
             background: var(--card-bg);
             border-radius: 12px;
             overflow-x: auto;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-            max-height: 50vh;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            max-height: 48vh;
         }
 
         table { width: 100%; border-collapse: collapse; font-size: 13px; }
@@ -105,51 +97,52 @@
         th { background: var(--card-bg); position: sticky; top: 0; font-size: 11px; color: var(--hint-color); white-space: nowrap; }
 
         .status-btn {
-            padding: 6px 10px;
-            border-radius: 6px;
+            padding: 8px 12px;
+            border-radius: 8px;
             border: none;
-            font-weight: 600;
-            font-size: 12px;
+            font-weight: 700;
+            font-size: 15px;
             cursor: pointer;
             width: 100%;
             max-width: 80px;
         }
 
         .status-btn.present { background-color: #e6f4ea; color: var(--present-color); }
-        .status-btn.absent { background-color: #fce8e6; color: var(--absent-color); }
+        .status-btn.absent { background-color: #fce8e6; color: var(--absent-color); font-size: 13px; }
+
+        .btn-group { display: flex; gap: 10px; margin-top: 12px; }
 
         .main-btn {
-            width: 100%;
+            flex: 1;
             padding: 12px;
             border-radius: 10px;
             border: none;
             background-color: var(--button-color);
             color: var(--button-text);
             font-weight: 600;
-            font-size: 14px;
+            font-size: 13px;
             cursor: pointer;
             text-align: center;
         }
 
-        .sec-btn { background: #e9ecef; color: #495057; }
-
-        .summary-badge {
-            font-size: 11px;
-            padding: 3px 6px;
-            border-radius: 4px;
-            font-weight: 600;
+        .sec-btn {
+            background-color: #198754;
+            color: #ffffff;
         }
-        .bg-success { background-color: #d1e7dd; color: #0f5132; }
-        .bg-danger { background-color: #f8d7da; color: #842029; }
+
+        .outline-btn {
+            background-color: #e9ecef;
+            color: #495057;
+        }
     </style>
 </head>
 <body>
 
-    <!-- Вкладки навигации -->
+    <!-- Навигация по вкладкам -->
     <div class="nav-tabs">
         <button class="tab-btn active" onclick="switchTab('journalTab', this)">📋 Перекличка</button>
-        <button class="tab-btn" onclick="switchTab('reportTab', this)">📈 Отчет за период</button>
-        <button class="tab-btn" onclick="switchTab('settingsTab', this)">⚙️ Группы</button>
+        <button class="tab-btn" onclick="switchTab('reportTab', this)">📈 Отчеты</button>
+        <button class="tab-btn" onclick="switchTab('settingsTab', this)">⚙️ Настройки</button>
     </div>
 
     <!-- Вкладка 1: Проведение переклички -->
@@ -166,7 +159,7 @@
                     <select class="control-select" id="groupSelect" onchange="renderStudents()"></select>
                 </div>
                 <div class="control-group" style="flex: 1;">
-                    <label>Дата</label>
+                    <label>Дата занятия</label>
                     <input type="date" class="control-input" id="datePicker">
                 </div>
             </div>
@@ -185,28 +178,44 @@
             </table>
         </div>
 
-        <div style="margin-top: 14px; display: flex; flex-direction: column; gap: 8px;">
-            <button class="main-btn" onclick="saveCurrentCheckin()">💾 Сохранить занятие и Скачать Excel</button>
+        <div class="btn-group">
+            <button class="main-btn sec-btn" onclick="saveCheckinOnly()">💾 Сохранить занятие</button>
+            <button class="main-btn" onclick="exportSingleSessionExcel()">📄 Записать в файл (.xlsx)</button>
         </div>
     </div>
 
-    <!-- Вкладка 2: Отчет за период -->
+    <!-- Вкладка 2: Отчеты -->
     <div id="reportTab" class="tab-content">
         <div class="card">
-            <h2>📊 Параметры отчета</h2>
+            <h2>📈 Формирование отчетов</h2>
+            
+            <div class="control-group">
+                <label>Дисциплина</label>
+                <select class="control-select" id="reportSubjectSelect" onchange="generateReport()"></select>
+            </div>
+
             <div class="control-group">
                 <label>Группа</label>
                 <select class="control-select" id="reportGroupSelect" onchange="generateReport()"></select>
             </div>
+
             <div class="controls-row">
                 <div class="control-group" style="flex: 1;">
-                    <label>Дата начала</label>
+                    <label>С даты</label>
                     <input type="date" class="control-input" id="reportStartDate" onchange="generateReport()">
                 </div>
                 <div class="control-group" style="flex: 1;">
-                    <label>Дата конца</label>
+                    <label>По дату</label>
                     <input type="date" class="control-input" id="reportEndDate" onchange="generateReport()">
                 </div>
+            </div>
+
+            <div class="control-group">
+                <label>Тип отчета</label>
+                <select class="control-select" id="reportTypeSelect" onchange="generateReport()">
+                    <option value="matrix">Матрица посещаемости (Даты × Студенты)</option>
+                    <option value="summary">Краткая сводка (% и пропуски)</option>
+                </select>
             </div>
         </div>
 
@@ -217,23 +226,23 @@
             </table>
         </div>
 
-        <div style="margin-top: 14px;">
-            <button class="main-btn" onclick="downloadPeriodReportExcel()">📥 Скачать Сводный Отчет (.xlsx)</button>
+        <div style="margin-top: 12px;">
+            <button class="main-btn" onclick="downloadReportExcel()">📥 Скачать отчет в Excel (.xlsx)</button>
         </div>
     </div>
 
-    <!-- Вкладка 3: Управление группами -->
+    <!-- Вкладка 3: Настройки -->
     <div id="settingsTab" class="tab-content">
         <div class="card">
             <h2>➕ Добавить дисциплину</h2>
             <div class="controls-row">
-                <input type="text" id="newSubjectInput" class="control-input" placeholder="Например: Нейросети в медиа">
-                <button class="main-btn" style="width: auto; white-space: nowrap;" onclick="addSubject()">Добавить</button>
+                <input type="text" id="newSubjectInput" class="control-input" placeholder="Название предмета">
+                <button class="main-btn" style="width: auto;" onclick="addSubject()">Добавить</button>
             </div>
         </div>
 
         <div class="card">
-            <h2>👥 Управление студентами и группами</h2>
+            <h2>👥 Добавление / Редактирование группы</h2>
             <div class="control-group">
                 <label>Название группы</label>
                 <input type="text" id="targetGroupInput" class="control-input" placeholder="Например: ИТ-101">
@@ -243,42 +252,32 @@
                 <label>Единичное добавление ФИО</label>
                 <div class="controls-row">
                     <input type="text" id="singleStudentInput" class="control-input" placeholder="Иванов Алексей">
-                    <button class="main-btn sec-btn" style="width: auto; white-space: nowrap;" onclick="addSingleStudent()">+1</button>
+                    <button class="main-btn outline-btn" style="width: auto;" onclick="addSingleStudent()">+1</button>
                 </div>
             </div>
 
             <div class="control-group">
-                <label>Групповой ввод (списком из Excel/файла)</label>
-                <textarea id="bulkStudentInput" rows="4" placeholder="Вставьте список фамилий (каждый студент с новой строки)..."></textarea>
+                <label>Групповой ввод (списком из файла/Excel)</label>
+                <textarea id="bulkStudentInput" rows="4" placeholder="Вставьте список студентов (каждый с новой строки)..."></textarea>
             </div>
 
-            <button class="main-btn" onclick="addBulkStudents()">💾 Сохранить список студентов</button>
+            <button class="main-btn" onclick="addBulkStudents()">💾 Сохранить группу</button>
         </div>
     </div>
 
     <script>
-        const tg = window.Telegram ? window.Telegram.WebApp : null;
-        if (tg) {
-            tg.ready();
-            tg.expand();
-        }
-
-        // Авто-установка дат (по умолчанию текущий месяц)
         const now = new Date();
         document.getElementById('datePicker').valueAsDate = now;
-
-        const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
-        document.getElementById('reportStartDate').valueAsDate = firstDay;
+        document.getElementById('reportStartDate').valueAsDate = new Date(now.getFullYear(), now.getMonth(), 1);
         document.getElementById('reportEndDate').valueAsDate = now;
 
-        // База данных
         let db = JSON.parse(localStorage.getItem('neuroJournalDB')) || {
             subjects: ["Искусственный Интеллект в Образовании", "Цифровые Технологии"],
             groups: {
                 "ИТ-101": ["Абдуллаева Амина", "Асанбеков Бакыт", "Болотбекова Айпери"],
                 "ПИ-202": ["Иванов Дмитрий", "Исмаилов Нурбек", "Кузнецова София"]
             },
-            history: [] // История перекличек: [{group, subject, date, records: {name: 'Был'/'Н/Я'}}]
+            history: []
         };
 
         function saveData() {
@@ -292,19 +291,19 @@
             document.getElementById(tabId).classList.add('active');
             btn.classList.add('active');
 
-            if (tabId === 'reportTab') {
-                generateReport();
-            }
+            if (tabId === 'reportTab') generateReport();
         }
 
         function initDropdowns() {
             const subjSelect = document.getElementById('subjectSelect');
-            subjSelect.innerHTML = db.subjects.map(s => `<option>${s}</option>`).join('');
+            const reportSubjSelect = document.getElementById('reportSubjectSelect');
+            const subjOptions = db.subjects.map(s => `<option>${s}</option>`).join('');
+            subjSelect.innerHTML = subjOptions;
+            reportSubjSelect.innerHTML = subjOptions;
 
             const groupSelect = document.getElementById('groupSelect');
             const reportGroupSelect = document.getElementById('reportGroupSelect');
             const groupNames = Object.keys(db.groups);
-            
             const groupOptions = groupNames.map(g => `<option>${g}</option>`).join('');
             groupSelect.innerHTML = groupOptions;
             reportGroupSelect.innerHTML = groupOptions;
@@ -318,16 +317,16 @@
             const tbody = document.getElementById('studentList');
 
             if (students.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="3" style="text-align:center; color: var(--hint-color);">В этой группе пока нет студентов</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="3" style="text-align:center; color:var(--hint-color);">В этой группе пока нет студентов</td></tr>`;
                 return;
             }
 
             tbody.innerHTML = students.map((name, idx) => `
                 <tr>
-                    <td style="color: var(--hint-color); font-size: 12px;">${idx + 1}</td>
-                    <td class="student-name" style="font-weight: 500;">${name}</td>
-                    <td style="text-align: center;">
-                        <button class="status-btn present" onclick="toggleStatus(this)">Был</button>
+                    <td style="color:var(--hint-color);">${idx + 1}</td>
+                    <td class="student-name" style="font-weight:500;">${name}</td>
+                    <td style="text-align:center;">
+                        <button class="status-btn present" onclick="toggleStatus(this)">+</button>
                     </td>
                 </tr>
             `).join('');
@@ -341,67 +340,82 @@
             } else {
                 btn.classList.remove('absent');
                 btn.classList.add('present');
-                btn.innerText = 'Был';
+                btn.innerText = '+';
             }
         }
 
-        // Сохранение переклички и генерация единичного отчета
-        function saveCurrentCheckin() {
+        function saveCheckinOnly() {
             const subject = document.getElementById('subjectSelect').value;
             const group = document.getElementById('groupSelect').value;
             const date = document.getElementById('datePicker').value;
 
             const trs = document.querySelectorAll('#studentList tr');
             const records = {};
-            const attendanceList = [];
 
-            trs.forEach((tr, idx) => {
+            trs.forEach(tr => {
                 const nameEl = tr.querySelector('.student-name');
                 const btnEl = tr.querySelector('.status-btn');
                 if (nameEl && btnEl) {
-                    const name = nameEl.innerText;
-                    const status = btnEl.innerText;
-                    records[name] = status;
-                    attendanceList.push({ num: idx + 1, name: name, status: status });
+                    records[nameEl.innerText] = btnEl.innerText;
                 }
             });
 
-            // Записываем в историю
             if (!db.history) db.history = [];
-            
-            // Удаляем старую запись за эту дату/группу, если перекличка перезаписывается
             db.history = db.history.filter(h => !(h.group === group && h.date === date && h.subject === subject));
             db.history.push({ group, subject, date, records });
             saveData();
 
-            const dataToSend = {
-                subject: subject,
-                group: group,
-                date: date,
-                students: attendanceList
-            };
-
-            if (tg && tg.sendData) {
-                try {
-                    tg.sendData(JSON.stringify(dataToSend));
-                    return;
-                } catch(e) {}
-            }
-
-            generateExcelLocally(subject, group, date, attendanceList);
+            alert(`✅ Занятие за ${date} (${group}, ${subject}) успешно сохранено!`);
         }
 
-        // Генерация отчета за период
+        function exportSingleSessionExcel() {
+            saveCheckinOnly();
+
+            const subject = document.getElementById('subjectSelect').value;
+            const group = document.getElementById('groupSelect').value;
+            const date = document.getElementById('datePicker').value;
+
+            const trs = document.querySelectorAll('#studentList tr');
+            const rows = [
+                ["ВЕДОМОСТЬ ПОСЕЩАЕМОСТИ ЗАНЯТИЯ"],
+                [`Дисциплина: ${subject}`],
+                [`Группа: ${group}`],
+                [`Дата: ${date}`],
+                [],
+                ["№", "ФИО Студента", "Статус"]
+            ];
+
+            let present = 0, absent = 0;
+            trs.forEach((tr, idx) => {
+                const nameEl = tr.querySelector('.student-name');
+                const btnEl = tr.querySelector('.status-btn');
+                if (nameEl && btnEl) {
+                    const st = btnEl.innerText;
+                    if (st === '+' || st === 'Был') present++; else absent++;
+                    rows.push([idx + 1, nameEl.innerText, st]);
+                }
+            });
+
+            rows.push([]);
+            rows.push(["Итого присутствовало:", present]);
+            rows.push(["Итого отсутствовало (Н/Я):", absent]);
+
+            const worksheet = XLSX.utils.aoa_to_sheet(rows);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Занятие");
+            XLSX.writeFile(workbook, `Ведомость_${group}_${date}.xlsx`);
+        }
+
         function generateReport() {
+            const subject = document.getElementById('reportSubjectSelect').value;
             const group = document.getElementById('reportGroupSelect').value;
             const start = document.getElementById('reportStartDate').value;
             const end = document.getElementById('reportEndDate').value;
+            const type = document.getElementById('reportTypeSelect').value;
 
             const students = db.groups[group] || [];
-            
-            // Находим все проведенные переклички для группы за период
-            const filteredHistory = (db.history || []).filter(h => {
-                return h.group === group && h.date >= start && h.date <= end;
+            const history = (db.history || []).filter(h => {
+                return h.group === group && h.subject === subject && h.date >= start && h.date <= end;
             }).sort((a, b) => a.date.localeCompare(b.date));
 
             const headerRow = document.getElementById('reportTableHeader');
@@ -413,181 +427,145 @@
                 return;
             }
 
-            // Формируем заголовок таблицы: № | ФИО | [Даты] | Посещаемость (%)
-            let headerHTML = `<tr><th style="width:5%;">№</th><th>ФИО Студента</th>`;
-            filteredHistory.forEach(h => {
-                const shortDate = h.date.split('-').slice(1).join('.');
-                headerHTML += `<th style="text-align:center;">${shortDate}</th>`;
-            });
-            headerHTML += `<th style="text-align:center;">Был</th><th style="text-align:center;">Н/Я</th><th style="text-align:center;">%</th></tr>`;
-            headerRow.innerHTML = headerHTML;
-
-            // Формируем строки по каждому студенту
-            let bodyHTML = '';
-            students.forEach((student, idx) => {
-                let presentCount = 0;
-                let absentCount = 0;
-
-                let rowHTML = `<tr><td style="color:var(--hint-color);">${idx + 1}</td><td style="font-weight:500;">${student}</td>`;
-
-                filteredHistory.forEach(h => {
-                    const status = (h.records && h.records[student]) ? h.records[student] : '-';
-                    if (status === 'Был') {
-                        presentCount++;
-                        rowHTML += `<td style="text-align:center; color:var(--present-color); font-weight:600;">+</td>`;
-                    } else if (status === 'Н/Я') {
-                        absentCount++;
-                        rowHTML += `<td style="text-align:center; color:var(--absent-color); font-weight:600;">Н/Я</td>`;
-                    } else {
-                        rowHTML += `<td style="text-align:center; color:var(--hint-color);">-</td>`;
-                    }
+            if (type === 'matrix') {
+                let headerHTML = `<tr><th>№</th><th>ФИО Студента</th>`;
+                history.forEach(h => {
+                    const shortDate = h.date.split('-').slice(1).join('.');
+                    headerHTML += `<th style="text-align:center;">${shortDate}</th>`;
                 });
+                headerHTML += `<th style="text-align:center;">Был</th><th style="text-align:center;">Н/Я</th><th style="text-align:center;">%</th></tr>`;
+                headerRow.innerHTML = headerHTML;
 
-                const totalClasses = presentCount + absentCount;
-                const percent = totalClasses > 0 ? Math.round((presentCount / totalClasses) * 100) : 0;
-                const badgeClass = percent >= 75 ? 'bg-success' : 'bg-danger';
+                let bodyHTML = '';
+                students.forEach((student, idx) => {
+                    let p = 0, a = 0;
+                    let row = `<tr><td>${idx + 1}</td><td style="font-weight:500;">${student}</td>`;
+                    
+                    history.forEach(h => {
+                        const st = (h.records && h.records[student]) ? h.records[student] : '-';
+                        if (st === '+' || st === 'Был') { p++; row += `<td style="text-align:center;color:green;font-weight:700;">+</td>`; }
+                        else if (st === 'Н/Я') { a++; row += `<td style="text-align:center;color:red;font-weight:600;">Н/Я</td>`; }
+                        else { row += `<td style="text-align:center;color:#999;">-</td>`; }
+                    });
 
-                rowHTML += `<td style="text-align:center;">${presentCount}</td>`;
-                rowHTML += `<td style="text-align:center;">${absentCount}</td>`;
-                rowHTML += `<td style="text-align:center;"><span class="summary-badge ${badgeClass}">${percent}%</span></td></tr>`;
-
-                bodyHTML += rowHTML;
-            });
-
-            tbody.innerHTML = bodyHTML;
+                    const total = p + a;
+                    const pct = total > 0 ? Math.round((p / total) * 100) : 0;
+                    row += `<td style="text-align:center;">${p}</td><td style="text-align:center;">${a}</td><td style="text-align:center;font-weight:bold;">${pct}%</td></tr>`;
+                    bodyHTML += row;
+                });
+                tbody.innerHTML = bodyHTML;
+            } else {
+                headerRow.innerHTML = `<tr><th>№</th><th>ФИО Студента</th><th style="text-align:center;">Посещено</th><th style="text-align:center;">Пропущено</th><th style="text-align:center;">% Посещаемости</th></tr>`;
+                
+                let bodyHTML = '';
+                students.forEach((student, idx) => {
+                    let p = 0, a = 0;
+                    history.forEach(h => {
+                        const st = (h.records && h.records[student]) ? h.records[student] : '-';
+                        if (st === '+' || st === 'Был') p++;
+                        else if (st === 'Н/Я') a++;
+                    });
+                    const total = p + a;
+                    const pct = total > 0 ? Math.round((p / total) * 100) : 0;
+                    bodyHTML += `<tr><td>${idx + 1}</td><td style="font-weight:500;">${student}</td><td style="text-align:center;">${p}</td><td style="text-align:center;">${a}</td><td style="text-align:center;font-weight:bold;">${pct}%</td></tr>`;
+                });
+                tbody.innerHTML = bodyHTML;
+            }
         }
 
-        // Скачивание сводного Excel за период
-        function downloadPeriodReportExcel() {
+        function downloadReportExcel() {
+            const subject = document.getElementById('reportSubjectSelect').value;
             const group = document.getElementById('reportGroupSelect').value;
             const start = document.getElementById('reportStartDate').value;
             const end = document.getElementById('reportEndDate').value;
+            const type = document.getElementById('reportTypeSelect').value;
 
             const students = db.groups[group] || [];
-            const filteredHistory = (db.history || []).filter(h => {
-                return h.group === group && h.date >= start && h.date <= end;
+            const history = (db.history || []).filter(h => {
+                return h.group === group && h.subject === subject && h.date >= start && h.date <= end;
             }).sort((a, b) => a.date.localeCompare(b.date));
 
             const rows = [
                 [`СВОДНЫЙ ОТЧЕТ ПОСЕЩАЕМОСТИ`],
+                [`Дисциплина: ${subject}`],
                 [`Группа: ${group}`],
                 [`Период: с ${start} по ${end}`],
                 []
             ];
 
-            // Заголовок Excel
-            const headerRow = ["№", "ФИО Студента"];
-            filteredHistory.forEach(h => headerRow.push(h.date));
-            headerRow.push("Всего Был", "Всего Н/Я", "% Посещаемости");
-            rows.push(headerRow);
+            if (type === 'matrix') {
+                const header = ["№", "ФИО Студента"];
+                history.forEach(h => header.push(h.date));
+                header.push("Всего Был (+)", "Всего Н/Я", "% Посещаемости");
+                rows.push(header);
 
-            // Данные по студентам
-            students.forEach((student, idx) => {
-                let presentCount = 0;
-                let absentCount = 0;
-                const studentRow = [idx + 1, student];
-
-                filteredHistory.forEach(h => {
-                    const status = (h.records && h.records[student]) ? h.records[student] : '-';
-                    if (status === 'Был') {
-                        presentCount++;
-                        studentRow.push("Был");
-                    } else if (status === 'Н/Я') {
-                        absentCount++;
-                        studentRow.push("Н/Я");
-                    } else {
-                        studentRow.push("-");
-                    }
+                students.forEach((student, idx) => {
+                    let p = 0, a = 0;
+                    const r = [idx + 1, student];
+                    history.forEach(h => {
+                        const st = (h.records && h.records[student]) ? h.records[student] : '-';
+                        if (st === '+' || st === 'Был') { p++; r.push("+"); }
+                        else if (st === 'Н/Я') { a++; r.push("Н/Я"); }
+                        else { r.push("-"); }
+                    });
+                    const total = p + a;
+                    const pct = total > 0 ? `${Math.round((p / total) * 100)}%` : '0%';
+                    r.push(p, a, pct);
+                    rows.push(r);
                 });
-
-                const totalClasses = presentCount + absentCount;
-                const percent = totalClasses > 0 ? `${Math.round((presentCount / totalClasses) * 100)}%` : '0%';
-
-                studentRow.push(presentCount, absentCount, percent);
-                rows.push(studentRow);
-            });
-
-            const worksheet = XLSX.utils.aoa_to_sheet(rows);
-            const workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, "Отчет за период");
-
-            const fileName = `Сводный_Отчет_${group}_${start}_${end}.xlsx`;
-            XLSX.writeFile(workbook, fileName);
-        }
-
-        function generateExcelLocally(subject, group, date, students) {
-            const rows = [
-                ["ВЕДОМОСТЬ ПОСЕЩАЕМОСТИ"],
-                ["Дисциплина:", subject],
-                ["Группа:", group],
-                ["Дата занятия:", date],
-                [],
-                ["№", "ФИО Студента", "Статус"]
-            ];
-
-            let present = 0, absent = 0;
-            students.forEach(s => {
-                rows.push([s.num, s.name, s.status]);
-                if (s.status === 'Был') present++; else absent++;
-            });
-
-            rows.push([]);
-            rows.push(["Итого присутствовало:", present]);
-            rows.push(["Итого отсутствовало:", absent]);
+            } else {
+                rows.push(["№", "ФИО Студента", "Посещено занятий", "Пропущено занятий", "% Посещаемости"]);
+                students.forEach((student, idx) => {
+                    let p = 0, a = 0;
+                    history.forEach(h => {
+                        const st = (h.records && h.records[student]) ? h.records[student] : '-';
+                        if (st === '+' || st === 'Был') p++;
+                        else if (st === 'Н/Я') a++;
+                    });
+                    const total = p + a;
+                    const pct = total > 0 ? `${Math.round((p / total) * 100)}%` : '0%';
+                    rows.push([idx + 1, student, p, a, pct]);
+                });
+            }
 
             const worksheet = XLSX.utils.aoa_to_sheet(rows);
             const workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, "Ведомость");
-
-            const fileName = `Ведомость_${group}_${date}.xlsx`;
-            XLSX.writeFile(workbook, fileName);
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Отчет");
+            XLSX.writeFile(workbook, `Отчет_${group}_${subject}_${start}_${end}.xlsx`);
         }
 
         function addSubject() {
             const val = document.getElementById('newSubjectInput').value.trim();
-            if (!val) return;
-            if (!db.subjects.includes(val)) {
+            if (val && !db.subjects.includes(val)) {
                 db.subjects.push(val);
                 saveData();
                 document.getElementById('newSubjectInput').value = '';
-                if (tg && tg.showAlert) tg.showAlert(`✅ Дисциплина "${val}" добавлена!`); else alert(`✅ Дисциплина "${val}" добавлена!`);
+                alert(`✅ Дисциплина "${val}" добавлена!`);
             }
         }
 
         function addSingleStudent() {
             const group = document.getElementById('targetGroupInput').value.trim();
             const student = document.getElementById('singleStudentInput').value.trim();
-            if (!group || !student) {
-                const msg = '⚠️ Укажите группу и ФИО';
-                if (tg && tg.showAlert) tg.showAlert(msg); else alert(msg);
-                return;
-            }
+            if (!group || !student) return alert('Укажите группу и ФИО');
 
             if (!db.groups[group]) db.groups[group] = [];
             db.groups[group].push(student);
             saveData();
             document.getElementById('singleStudentInput').value = '';
-            const msg = `✅ ${student} добавлен в группу ${group}`;
-            if (tg && tg.showAlert) tg.showAlert(msg); else alert(msg);
+            alert(`✅ ${student} добавлен в группу ${group}`);
         }
 
         function addBulkStudents() {
             const group = document.getElementById('targetGroupInput').value.trim();
             const rawText = document.getElementById('bulkStudentInput').value.trim();
-            if (!group || !rawText) {
-                const msg = '⚠️ Укажите группу и вставьте список';
-                if (tg && tg.showAlert) tg.showAlert(msg); else alert(msg);
-                return;
-            }
+            if (!group || !rawText) return alert('Укажите группу и список');
 
             const newStudents = rawText.split('\n').map(s => s.trim()).filter(s => s.length > 0);
-            if (!db.groups[group]) db.groups[group] = [];
-
-            db.groups[group] = [...db.groups[group], ...newStudents];
+            db.groups[group] = [...(db.groups[group] || []), ...newStudents];
             saveData();
             document.getElementById('bulkStudentInput').value = '';
-            const msg = `✅ Добавлено ${newStudents.length} студентов в группу ${group}`;
-            if (tg && tg.showAlert) tg.showAlert(msg); else alert(msg);
+            alert(`✅ Добавлено ${newStudents.length} студентов в группу ${group}!`);
         }
 
         initDropdowns();
